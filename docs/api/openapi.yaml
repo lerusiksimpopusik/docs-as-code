@@ -119,7 +119,9 @@ components:
         confidence:
           type: number
           format: float
-          description: Уверенность модели в результате.
+          description: Уверенность модели в результате в диапазоне от 0 до 1. Например, значение 0.87 соответствует 87% уверенности. Интерфейс может преобразовывать значение в проценты.
+          minimum: 0
+          maximum: 1
           example: 0.87
         modelVersion:
           type: string
