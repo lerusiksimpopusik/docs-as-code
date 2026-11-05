@@ -1,0 +1,158 @@
+openapi: 3.0.3
+
+info:
+  title: Review Analyzer API
+  description: API сервиса автоматического определения тональности отзывов.
+  version: 1.0.0
+
+servers:
+  - url: https://example.com/api/v1
+
+paths:
+  /analysis:
+    post:
+      summary: Проанализировать тональность отзыва
+      description: Принимает текст отзыва и возвращает определённую ML-моделью тональность.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+      responses:
+        '201':
+          description: Анализ выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '400':
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервиса или ML-модель недоступна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /analysis/{id}:
+    get:
+      summary: Получить результат анализа
+      description: Возвращает ранее сохранённый результат анализа отзыва по его идентификатору.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор результата анализа.
+          schema:
+            type: integer
+          example: 123
+      responses:
+        '200':
+          description: Результат найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '404':
+          description: Результат анализа не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /models:
+    get:
+      summary: Получить список доступных моделей
+      description: Возвращает модели, доступные для анализа тональности отзывов.
+      responses:
+        '200':
+          description: Список моделей получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelInfo'
+        '500':
+          description: Внутренняя ошибка сервиса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    AnalysisRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Текст отзыва для анализа.
+          example: Товар пришёл быстро, но упаковка была повреждена.
+
+    AnalysisResult:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор результата анализа.
+          example: 123
+        text:
+          type: string
+          description: Исходный текст отзыва.
+          example: Товар пришёл быстро, но упаковка была повреждена.
+        sentiment:
+          type: string
+          description: Определённая тональность отзыва.
+          enum:
+            - positive
+            - neutral
+            - negative
+          example: neutral
+        confidence:
+          type: number
+          format: float
+          description: Уверенность модели в результате.
+          example: 0.87
+        modelVersion:
+          type: string
+          description: Версия использованной ML-модели.
+          example: sentiment-v1.2
+
+    ModelInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Название модели.
+          example: sentiment-v1.2
+        description:
+          type: string
+          description: Краткое описание модели.
+          example: Модель для определения тональности отзывов на русском языке.
+        status:
+          type: string
+          description: Текущий статус модели.
+          enum:
+            - active
+            - deprecated
+          example: active
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Код ошибки.
+          example: INVALID_TEXT
+        message:
+          type: string
+          description: Описание ошибки.
+          example: Text must not be empty
